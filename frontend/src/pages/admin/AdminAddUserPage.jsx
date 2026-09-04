@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { adminAPI } from '../../api/endpoints';
 
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,16}$/;
@@ -50,51 +51,70 @@ const AdminAddUserPage = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-10">
-      <div className="flex items-center gap-3 mb-6">
-        <Link to="/admin/users" className="text-neutral-500 hover:text-neutral-900 text-sm font-medium">← Users</Link>
-        <span className="text-neutral-300">/</span>
-        <span className="text-neutral-500 text-sm">New User</span>
+    <div className="max-w-lg mx-auto px-4 sm:px-6 py-10">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-1.5 mb-6 text-sm">
+        <Link to="/admin/users" className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded">
+          <ChevronLeft size={15} />
+          Users
+        </Link>
+        <span className="text-slate-300">/</span>
+        <span className="text-slate-500">New User</span>
       </div>
 
-      <h1 className="text-2xl font-bold text-neutral-900 mb-6">Add New User</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Add New User</h1>
 
       <div className="card">
         {serverError && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">{serverError}</div>
+          <div className="mb-5 alert-error rounded-lg">
+            <span>{serverError}</span>
+          </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div>
-            <label htmlFor="au-name" className="block text-sm font-medium text-neutral-700 mb-1">Full Name</label>
-            <input id="au-name" name="name" value={form.name} onChange={handleChange} placeholder="20-60 characters" />
+            <label htmlFor="au-name" className="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+            <input id="au-name" name="name" value={form.name} onChange={handleChange} placeholder="20–60 characters" />
             {errors.name && <p className="field-error">{errors.name}</p>}
           </div>
 
           <div>
-            <label htmlFor="au-email" className="block text-sm font-medium text-neutral-700 mb-1">Email</label>
+            <label htmlFor="au-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email Address</label>
             <input id="au-email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="user@example.com" />
             {errors.email && <p className="field-error">{errors.email}</p>}
           </div>
 
           <div>
-            <label htmlFor="au-password" className="block text-sm font-medium text-neutral-700 mb-1">Password</label>
+            <label htmlFor="au-password" className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
             <div className="relative">
-              <input id="au-password" name="password" type={showPass ? 'text' : 'password'} value={form.password} onChange={handleChange} placeholder="8-16 chars, 1 uppercase, 1 special" className="pr-12" />
-              <button type="button" aria-label={showPass ? 'Hide password' : 'Show password'} onClick={() => setShowPass(!showPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-900 text-xs font-medium">
-                {showPass ? 'Hide' : 'Show'}
+              <input
+                id="au-password"
+                name="password"
+                type={showPass ? 'text' : 'password'}
+                value={form.password}
+                onChange={handleChange}
+                placeholder="8–16 chars, 1 uppercase, 1 special"
+                className="pr-11"
+              />
+              <button
+                type="button"
+                aria-label={showPass ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPass(!showPass)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
+              >
+                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {errors.password && <p className="field-error">{errors.password}</p>}
           </div>
 
           <div>
-            <label htmlFor="au-address" className="block text-sm font-medium text-neutral-700 mb-1">Address</label>
+            <label htmlFor="au-address" className="block text-sm font-medium text-slate-700 mb-1.5">Address</label>
             <textarea id="au-address" name="address" value={form.address} onChange={handleChange} rows={2} placeholder="Max 400 characters" />
             {errors.address && <p className="field-error">{errors.address}</p>}
           </div>
 
           <div>
-            <label htmlFor="au-role" className="block text-sm font-medium text-neutral-700 mb-1">Role</label>
+            <label htmlFor="au-role" className="block text-sm font-medium text-slate-700 mb-1.5">Role</label>
             <select id="au-role" name="role" value={form.role} onChange={handleChange}>
               <option value="NORMAL_USER">Normal User</option>
               <option value="ADMIN">Admin</option>
@@ -102,9 +122,11 @@ const AdminAddUserPage = () => {
             {errors.role && <p className="field-error">{errors.role}</p>}
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button id="au-submit" type="submit" disabled={loading} className="btn-primary flex-1">
-              {loading ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Creating...</> : 'Create User'}
+              {loading
+                ? <><div className="spinner spinner-sm spinner-white" />Creating...</>
+                : 'Create User'}
             </button>
             <Link to="/admin/users" className="btn-secondary">Cancel</Link>
           </div>

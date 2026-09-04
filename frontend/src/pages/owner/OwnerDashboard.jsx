@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import { MapPin, Star } from 'lucide-react';
 import { ownerAPI } from '../../api/endpoints';
 import StarRating from '../../components/StarRating';
 import DataTable from '../../components/DataTable';
 
 const raterColumns = [
-  { key: 'name', label: 'Customer Name', sortable: false },
-  { key: 'email', label: 'Email', sortable: false },
+  { key: 'name',  label: 'Customer',  sortable: false },
+  { key: 'email', label: 'Email',     sortable: false, hideOnMobile: true },
   {
     key: 'rating',
     label: 'Rating',
@@ -14,6 +15,7 @@ const raterColumns = [
   {
     key: 'submittedAt',
     label: 'Date',
+    hideOnMobile: true,
     render: (v) => new Date(v).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
   },
 ];
@@ -31,48 +33,58 @@ const OwnerDashboard = () => {
   }, []);
 
   if (loading) return (
-    <div className="flex justify-center py-20">
-      <div className="w-8 h-8 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin" />
+    <div className="flex justify-center py-24">
+      <div className="spinner spinner-lg spinner-indigo" />
     </div>
   );
 
   if (error) return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="card text-center"><p className="text-red-500">{error}</p></div>
+      <div className="card text-center py-12">
+        <p className="text-red-500 font-medium">{error}</p>
+      </div>
     </div>
   );
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-      <div className="mb-8 border-b border-neutral-200 pb-6">
-        <h1 className="text-3xl font-bold text-neutral-900">Store Dashboard</h1>
-        <p className="text-neutral-500 mt-1 text-sm">Monitor your store's ratings and feedback</p>
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Store Dashboard</h1>
+          <p className="text-slate-500 mt-1 text-sm">Monitor your store's ratings and customer feedback</p>
+        </div>
       </div>
 
-      {/* Store Info */}
-      <div className="card mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-neutral-900">{data.store.name}</h2>
-            <p className="text-neutral-500 text-sm mt-0.5">{data.store.email}</p>
-            <p className="text-neutral-500 text-sm flex items-center gap-1 mt-1">
-              <span className="opacity-60">📍</span>{data.store.address}
+      {/* Store Info Card */}
+      <div className="card mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-5">
+          {/* Store details */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-xl font-bold text-slate-900">{data.store.name}</h2>
+            <p className="text-slate-400 text-sm mt-0.5">{data.store.email}</p>
+            <p className="text-slate-500 text-sm flex items-center gap-1.5 mt-2">
+              <MapPin size={13} className="text-slate-400 shrink-0" />
+              {data.store.address}
             </p>
           </div>
 
-          <div className="flex gap-8 shrink-0 border-t sm:border-t-0 sm:border-l border-neutral-200 pt-4 sm:pt-0 sm:pl-8">
+          {/* Stats row */}
+          <div className="flex gap-6 shrink-0 sm:border-l sm:border-slate-100 sm:pl-6 border-t border-slate-100 pt-4 sm:pt-0">
+            {/* Average */}
             <div className="text-center">
-              <div className="text-3xl font-bold text-neutral-900">
+              <div className="text-3xl font-bold text-slate-900 tabular-nums">
                 {data.averageRating?.toFixed(1) ?? '—'}
               </div>
-              <div className="text-xs uppercase font-bold tracking-wider text-neutral-400 mt-1 mb-1">Average</div>
+              <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-0.5 mb-1.5">Average</div>
               {data.averageRating != null && (
                 <StarRating value={data.averageRating} size="sm" showValue={false} />
               )}
             </div>
+            {/* Total */}
             <div className="text-center">
-              <div className="text-3xl font-bold text-neutral-900">{data.totalRatings}</div>
-              <div className="text-xs uppercase font-bold tracking-wider text-neutral-400 mt-1">Total Ratings</div>
+              <div className="text-3xl font-bold text-slate-900 tabular-nums">{data.totalRatings}</div>
+              <div className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-0.5">Ratings</div>
             </div>
           </div>
         </div>
@@ -80,23 +92,26 @@ const OwnerDashboard = () => {
 
       {/* Rating distribution */}
       {data.totalRatings > 0 && (
-        <div className="card mb-6">
-          <h2 className="text-sm uppercase font-bold tracking-wider text-neutral-900 mb-6 border-b border-neutral-100 pb-2">Rating Distribution</h2>
-          <div className="max-w-md">
+        <div className="card mb-5">
+          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-slate-100">
+            <Star size={14} className="text-amber-400" fill="currentColor" strokeWidth={0} />
+            <h2 className="text-sm font-semibold text-slate-700 uppercase tracking-wider">Rating Distribution</h2>
+          </div>
+          <div className="max-w-md space-y-2.5">
             {[5, 4, 3, 2, 1].map((star) => {
               const count = data.raters.filter((r) => r.rating === star).length;
               const pct = data.totalRatings ? (count / data.totalRatings) * 100 : 0;
               return (
-                <div key={star} className="flex items-center gap-3 mb-3">
-                  <span className="text-sm font-medium text-neutral-600 w-4">{star}</span>
-                  <span className="text-neutral-300 text-sm">★</span>
-                  <div className="flex-1 bg-neutral-100 rounded-full h-2 overflow-hidden shadow-inner">
+                <div key={star} className="flex items-center gap-3">
+                  <span className="text-sm font-semibold text-slate-500 w-3 text-right tabular-nums">{star}</span>
+                  <Star size={11} className="text-amber-400 shrink-0" fill="currentColor" strokeWidth={0} />
+                  <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
                     <div
-                      className="h-full bg-neutral-800 rounded-full transition-all duration-500"
+                      className="h-full bg-amber-400 rounded-full transition-all duration-700"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <span className="text-xs font-medium text-neutral-500 w-8 text-right">{count}</span>
+                  <span className="text-xs font-semibold text-slate-400 w-5 text-right tabular-nums">{count}</span>
                 </div>
               );
             })}
@@ -105,10 +120,13 @@ const OwnerDashboard = () => {
       )}
 
       {/* Raters Table */}
-      <div className="bg-white rounded-xl border border-neutral-200 shadow-sm p-2 sm:p-4">
-        <div className="px-2 pt-2 pb-4">
-          <h2 className="text-sm uppercase font-bold tracking-wider text-neutral-900">
-            Recent Feedback ({data.totalRatings})
+      <div className="section-panel">
+        <div className="px-4 py-4 border-b border-slate-100">
+          <h2 className="text-sm font-semibold text-slate-700">
+            Recent Feedback
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium tabular-nums">
+              {data.totalRatings}
+            </span>
           </h2>
         </div>
         <DataTable

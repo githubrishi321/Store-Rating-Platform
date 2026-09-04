@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { UserPlus, Trash2, X } from 'lucide-react';
 import { adminAPI } from '../../api/endpoints';
 import DataTable from '../../components/DataTable';
 import ConfirmationModal from '../../components/ConfirmationModal';
@@ -11,11 +12,19 @@ const roleBadge = {
   STORE_OWNER: <span className="badge badge-owner">Owner</span>,
 };
 
+// Text-searchable filters (sent to DataTable's generic filter bar)
 const filters = [
-  { key: 'name', label: 'Name', placeholder: 'Filter by name...' },
-  { key: 'email', label: 'Email', placeholder: 'Filter by email...' },
+  { key: 'name',    label: 'Name',    placeholder: 'Filter by name...'    },
+  { key: 'email',   label: 'Email',   placeholder: 'Filter by email...'   },
   { key: 'address', label: 'Address', placeholder: 'Filter by address...' },
-  { key: 'role', label: 'Role', placeholder: 'Filter by role (ADMIN, NORMAL_USER, STORE_OWNER)...' },
+];
+
+// Role options — values must exactly match the Prisma enum
+const ROLE_OPTIONS = [
+  { value: '',            label: 'All Roles'   },
+  { value: 'ADMIN',       label: 'Admin'       },
+  { value: 'NORMAL_USER', label: 'User'        },
+  { value: 'STORE_OWNER', label: 'Store Owner' },
 ];
 
 const AdminUsersPage = () => {
@@ -24,6 +33,7 @@ const AdminUsersPage = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterValues, setFilterValues] = useState({});
+  const [roleFilter, setRoleFilter] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
 
@@ -37,7 +47,12 @@ const AdminUsersPage = () => {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { ...filterValues, sortBy, order: sortOrder };
+      const params = {
+        ...filterValues,
+        ...(roleFilter ? { role: roleFilter } : {}),
+        sortBy,
+        order: sortOrder,
+      };
       const { data } = await adminAPI.getUsers(params);
       setUsers(data.users);
     } catch (err) {
@@ -45,7 +60,7 @@ const AdminUsersPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [filterValues, sortBy, sortOrder]);
+  }, [filterValues, roleFilter, sortBy, sortOrder]);
 
   useEffect(() => {
     const timer = setTimeout(fetchUsers, 300);
@@ -76,24 +91,29 @@ const AdminUsersPage = () => {
 
   const columns = useMemo(
     () => [
-      { key: 'name', label: 'Name', sortable: true },
-      { key: 'email', label: 'Email', sortable: true },
-      { key: 'address', label: 'Address', sortable: false },
-      { key: 'role', label: 'Role', sortable: true, render: (v) => roleBadge[v] || v },
+      { key: 'name',  label: 'Name',    sortable: true },
+      { key: 'email', label: 'Email',   sortable: true, hideOnMobile: true },
+      { key: 'address', label: 'Address', hideOnMobile: true },
+      { key: 'role',  label: 'Role',    sortable: true, render: (v) => roleBadge[v] || v },
       {
         key: 'id',
         label: 'Actions',
         render: (id, row) => (
-          <div className="flex items-center gap-3">
-            <Link to={`/admin/users/${id}`} className="text-neutral-900 hover:underline text-sm font-medium">
+          <div className="flex items-center gap-1">
+            <Link
+              to={`/admin/users/${id}`}
+              className="px-2.5 py-1 text-xs font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
+            >
               View →
             </Link>
             {currentUser?.id !== id && (
               <button
                 type="button"
                 onClick={() => setDeleteTarget(row)}
-                className="text-red-600 hover:text-red-800 hover:underline text-sm font-medium transition-colors"
+                className="btn-ghost-danger"
+                aria-label={`Delete user ${row.name}`}
               >
+                <Trash2 size={13} />
                 Delete
               </button>
             )}
@@ -105,37 +125,49 @@ const AdminUsersPage = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-      <div className="flex items-center justify-between mb-8 border-b border-neutral-200 pb-6">
+    <div className="page-container">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900">Users</h1>
-          <p className="text-neutral-500 text-sm mt-1">{users.length} total users</p>
+          <h1 className="text-3xl font-bold text-slate-900">Users</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            {loading ? 'Loading...' : `${users.length} total user${users.length !== 1 ? 's' : ''}`}
+          </p>
         </div>
-        <Link to="/admin/users/new" className="btn-primary">
-          ➕ Add User
-        </Link>
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Role filter dropdown — must match exact enum values */}
+          <select
+            id="users-role-filter"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="text-sm py-2 px-3 w-auto min-w-[140px]"
+            aria-label="Filter by role"
+          >
+            {ROLE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <Link to="/admin/users/new" className="btn-primary">
+            <UserPlus size={15} />
+            Add User
+          </Link>
+        </div>
       </div>
 
       {alert && (
-        <div
-          className={`mb-6 p-4 rounded-lg text-sm border flex items-center justify-between font-medium ${
-            alert.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : 'bg-red-50 border-red-200 text-red-700'
-          }`}
-        >
+        <div className={`mb-6 ${alert.type === 'success' ? 'alert-success' : 'alert-error'}`}>
           <span>{alert.text}</span>
           <button
             type="button"
             onClick={() => setAlert(null)}
-            className="text-neutral-400 hover:text-neutral-900 text-xs ml-4"
+            className="flex-shrink-0 text-current opacity-50 hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-current focus-visible:outline-none rounded"
+            aria-label="Dismiss"
           >
-            ✕
+            <X size={15} />
           </button>
         </div>
       )}
 
-      <div className="bg-white rounded-lg border border-neutral-200 shadow-sm p-1 sm:p-4">
+      <div className="section-panel">
         <DataTable
           columns={columns}
           data={users}
