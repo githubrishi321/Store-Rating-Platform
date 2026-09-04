@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ChevronLeft, Trash2, Store, X } from 'lucide-react';
 import { adminAPI } from '../../api/endpoints';
 import StarRating from '../../components/StarRating';
 import ConfirmationModal from '../../components/ConfirmationModal';
@@ -12,9 +13,9 @@ const roleBadge = {
 };
 
 const InfoRow = ({ label, value }) => (
-  <div className="flex flex-col sm:flex-row sm:items-start gap-1 py-3 border-b border-neutral-100">
-    <span className="text-neutral-500 text-sm w-32 shrink-0">{label}</span>
-    <span className="text-neutral-900 text-sm">{value}</span>
+  <div className="flex flex-col sm:flex-row sm:items-start gap-1 py-3 border-b border-slate-100 last:border-b-0">
+    <span className="text-slate-500 text-sm w-36 shrink-0 font-medium">{label}</span>
+    <span className="text-slate-800 text-sm">{value}</span>
   </div>
 );
 
@@ -57,83 +58,111 @@ const AdminUserDetailPage = () => {
   };
 
   if (loading) return (
-    <div className="flex items-center justify-center py-20">
-      <div className="w-8 h-8 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin" />
+    <div className="flex items-center justify-center py-24">
+      <div className="spinner spinner-lg spinner-indigo" />
     </div>
   );
 
   if (error) return (
     <div className="max-w-2xl mx-auto px-4 py-10">
-      <div className="card text-center">
-        <p className="text-red-500">{error}</p>
-        <Link to="/admin/users" className="btn-secondary mt-4">← Back to Users</Link>
+      <div className="card text-center py-12">
+        <p className="text-red-500 font-medium mb-4">{error}</p>
+        <Link to="/admin/users" className="btn-secondary">
+          <ChevronLeft size={15} />
+          Back to Users
+        </Link>
       </div>
     </div>
   );
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
+      {/* Breadcrumb + Actions */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link to="/admin/users" className="text-neutral-500 hover:text-neutral-900 text-sm font-medium">← Users</Link>
-          <span className="text-neutral-300">/</span>
-          <span className="text-neutral-500 text-sm truncate max-w-[200px]">{user.name}</span>
+        <div className="flex items-center gap-1.5 text-sm min-w-0">
+          <Link
+            to="/admin/users"
+            className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
+          >
+            <ChevronLeft size={15} />
+            Users
+          </Link>
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-500 truncate max-w-[180px]">{user.name}</span>
         </div>
         {currentUser?.id !== user.id && (
           <button
             type="button"
             onClick={() => setShowDeleteModal(true)}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md text-sm font-medium transition-colors border border-red-200"
+            className="btn-ghost-danger border border-red-200 hover:border-red-300"
           >
+            <Trash2 size={13} />
             Delete User
           </button>
         )}
       </div>
 
+      {/* Action error */}
       {actionError && (
-        <div className="mb-6 p-4 rounded-lg text-sm bg-red-50 border border-red-200 text-red-700 font-medium flex items-center justify-between">
+        <div className="mb-6 alert-error">
           <span>{actionError}</span>
           <button
             type="button"
             onClick={() => setActionError('')}
-            className="text-neutral-400 hover:text-neutral-900 text-xs ml-4"
+            className="flex-shrink-0 opacity-60 hover:opacity-100 focus-visible:ring-2 focus-visible:ring-current focus-visible:outline-none rounded"
+            aria-label="Dismiss"
           >
-            ✕
+            <X size={15} />
           </button>
         </div>
       )}
 
+      {/* User Card */}
       <div className="card">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-neutral-900">{user.name}</h1>
-            <p className="text-neutral-500 text-sm mt-1">{user.email}</p>
+        {/* User header */}
+        <div className="flex items-start justify-between mb-5 pb-5 border-b border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-base font-bold select-none shrink-0">
+              {user.name?.slice(0, 2).toUpperCase() || '?'}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">{user.name}</h1>
+              <p className="text-slate-500 text-sm mt-0.5">{user.email}</p>
+            </div>
           </div>
           {roleBadge[user.role]}
         </div>
 
+        {/* Info rows */}
         <div>
-          <InfoRow label="User ID" value={<span className="font-mono text-xs text-neutral-500 bg-neutral-100 px-1 py-0.5 rounded">{user.id}</span>} />
+          <InfoRow label="User ID" value={
+            <span className="font-mono text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">{user.id}</span>
+          } />
           <InfoRow label="Address" value={user.address} />
-          <InfoRow label="Member Since" value={new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} />
+          <InfoRow label="Member Since" value={
+            new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          } />
         </div>
 
         {/* Store Owner section */}
         {user.role === 'STORE_OWNER' && user.ownedStore && (
-          <div className="mt-6 p-4 rounded-xl bg-neutral-50 border border-neutral-200">
-            <h2 className="text-base font-semibold text-neutral-900 mb-3 flex items-center gap-2">
-              🏪 Owned Store
+          <div className="mt-5 pt-5 border-t border-slate-100">
+            <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Store size={13} />
+              Owned Store
             </h2>
-            <InfoRow label="Store Name" value={user.ownedStore.name} />
-            <InfoRow label="Store Email" value={user.ownedStore.email} />
-            <InfoRow label="Store Address" value={user.ownedStore.address} />
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 py-3">
-              <span className="text-neutral-500 text-sm w-32">Avg. Rating</span>
-              {user.ownedStore.averageRating ? (
-                <StarRating value={user.ownedStore.averageRating} size="sm" />
-              ) : (
-                <span className="text-neutral-400 text-sm">No ratings yet</span>
-              )}
+            <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-1">
+              <InfoRow label="Store Name" value={user.ownedStore.name} />
+              <InfoRow label="Store Email" value={user.ownedStore.email} />
+              <InfoRow label="Store Address" value={user.ownedStore.address} />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 py-3">
+                <span className="text-slate-500 text-sm w-36 font-medium shrink-0">Avg. Rating</span>
+                {user.ownedStore.averageRating ? (
+                  <StarRating value={user.ownedStore.averageRating} size="sm" />
+                ) : (
+                  <span className="text-slate-400 text-sm">No ratings yet</span>
+                )}
+              </div>
             </div>
           </div>
         )}

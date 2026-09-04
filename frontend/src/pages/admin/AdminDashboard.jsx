@@ -1,14 +1,30 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Users, Store, Star, UserPlus, PlusCircle } from 'lucide-react';
 import { adminAPI } from '../../api/endpoints';
 
-const StatCard = ({ icon, label, value }) => (
-  <div className="stat-card">
-    <div className="flex items-center gap-3 mb-2">
-      <div className="text-2xl">{icon}</div>
-      <p className="text-neutral-500 text-sm font-medium">{label}</p>
+const statConfig = [
+  { key: 'totalUsers',   label: 'Total Users',   Icon: Users,  iconBg: 'bg-indigo-50', iconColor: 'text-indigo-600' },
+  { key: 'totalStores',  label: 'Total Stores',  Icon: Store,  iconBg: 'bg-amber-50',  iconColor: 'text-amber-600'  },
+  { key: 'totalRatings', label: 'Total Ratings', Icon: Star,   iconBg: 'bg-emerald-50',iconColor: 'text-emerald-600'},
+];
+
+const actionCards = [
+  { to: '/admin/users',      label: 'View Users',   description: 'Manage all users', Icon: Users,      iconBg: 'bg-indigo-50', iconColor: 'text-indigo-600' },
+  { to: '/admin/users/new',  label: 'Add User',     description: 'Create a new user', Icon: UserPlus,   iconBg: 'bg-indigo-50', iconColor: 'text-indigo-600' },
+  { to: '/admin/stores',     label: 'View Stores',  description: 'Manage all stores', Icon: Store,      iconBg: 'bg-amber-50',  iconColor: 'text-amber-600'  },
+  { to: '/admin/stores/new', label: 'Add Store',    description: 'Create a new store',Icon: PlusCircle, iconBg: 'bg-amber-50',  iconColor: 'text-amber-600'  },
+];
+
+const StatCard = ({ label, value, Icon, iconBg, iconColor }) => (
+  <div className="stat-card flex items-center gap-4">
+    <div className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center shrink-0`}>
+      <Icon size={22} className={iconColor} strokeWidth={1.75} />
     </div>
-    <p className="text-3xl font-bold text-neutral-900">{value ?? '—'}</p>
+    <div>
+      <p className="text-sm font-medium text-slate-500">{label}</p>
+      <p className="text-2xl font-bold text-slate-900 tabular-nums mt-0.5">{value ?? '—'}</p>
+    </div>
   </div>
 );
 
@@ -24,36 +40,44 @@ const AdminDashboard = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-      <div className="mb-8 border-b border-neutral-200 pb-6">
-        <h1 className="text-3xl font-bold text-neutral-900">Admin Dashboard</h1>
-        <p className="text-neutral-500 mt-1">Platform overview and quick actions</p>
+    <div className="page-container">
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
+          <p className="text-slate-500 mt-1 text-sm">Platform overview and quick actions</p>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-10">
-        <StatCard icon="👥" label="Total Users" value={loading ? '...' : stats?.totalUsers} />
-        <StatCard icon="🏪" label="Total Stores" value={loading ? '...' : stats?.totalStores} />
-        <StatCard icon="⭐" label="Total Ratings" value={loading ? '...' : stats?.totalRatings} />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {statConfig.map(({ key, label, Icon, iconBg, iconColor }) => (
+          <StatCard
+            key={key}
+            label={label}
+            value={loading ? <span className="text-slate-300">···</span> : stats?.[key]}
+            Icon={Icon}
+            iconBg={iconBg}
+            iconColor={iconColor}
+          />
+        ))}
       </div>
 
       {/* Quick Actions */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-neutral-900 mb-4">Quick Actions</h2>
+      <div>
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { to: '/admin/users', label: 'View Users', icon: '👥' },
-            { to: '/admin/users/new', label: 'Add User', icon: '➕' },
-            { to: '/admin/stores', label: 'View Stores', icon: '🏪' },
-            { to: '/admin/stores/new', label: 'Add Store', icon: '🏗️' },
-          ].map((action) => (
+          {actionCards.map(({ to, label, description, Icon, iconBg, iconColor }) => (
             <Link
-              key={action.to}
-              to={action.to}
-              className="card text-center hover:border-neutral-300 hover:bg-neutral-50 transition-all cursor-pointer group shadow-sm flex flex-col items-center justify-center p-6"
+              key={to}
+              to={to}
+              className="card text-left hover:border-slate-300 hover:shadow-md transition-all cursor-pointer group focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none"
             >
-              <div className="text-2xl mb-3 group-hover:scale-110 transition-transform">{action.icon}</div>
-              <p className="text-sm font-medium text-neutral-700">{action.label}</p>
+              <div className={`w-10 h-10 rounded-lg ${iconBg} flex items-center justify-center mb-3 group-hover:scale-105 transition-transform`}>
+                <Icon size={18} className={iconColor} strokeWidth={1.75} />
+              </div>
+              <p className="text-sm font-semibold text-slate-800">{label}</p>
+              <p className="text-xs text-slate-400 mt-0.5">{description}</p>
             </Link>
           ))}
         </div>

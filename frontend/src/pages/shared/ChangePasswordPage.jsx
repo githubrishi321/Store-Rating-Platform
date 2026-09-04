@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { authAPI } from '../../api/endpoints';
 
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,16}$/;
@@ -45,24 +46,22 @@ const ChangePasswordPage = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-neutral-900 mb-2">Change Password</h1>
-      <p className="text-neutral-500 text-sm mb-6">Update your account password securely.</p>
+    <div className="max-w-lg mx-auto px-4 sm:px-6 py-10">
+      <div className="mb-7">
+        <h1 className="text-2xl font-bold text-slate-900">Change Password</h1>
+        <p className="text-slate-500 text-sm mt-1">Update your account password securely.</p>
+      </div>
 
       <div className="card">
         {status.msg && (
-          <div className={`mb-6 p-3 rounded-lg text-sm border font-medium ${
-            status.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-              : 'bg-red-50 border-red-200 text-red-600'
-          }`}>
-            {status.msg}
+          <div className={`mb-6 ${status.type === 'success' ? 'alert-success' : 'alert-error'} rounded-lg`}>
+            <span>{status.msg}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div>
-            <label htmlFor="cp-current" className="block text-sm font-semibold text-neutral-700 mb-1.5">Current Password</label>
+            <label htmlFor="cp-current" className="block text-sm font-medium text-slate-700 mb-1.5">Current Password</label>
             <div className="relative">
               <input
                 id="cp-current"
@@ -72,22 +71,22 @@ const ChangePasswordPage = () => {
                 value={form.currentPassword}
                 onChange={handleChange}
                 placeholder="Enter current password"
-                className="pr-12"
+                className="pr-11"
               />
               <button
                 type="button"
                 aria-label={showCurrent ? 'Hide current password' : 'Show current password'}
                 onClick={() => setShowCurrent(!showCurrent)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-900 text-xs font-medium"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
               >
-                {showCurrent ? 'Hide' : 'Show'}
+                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {errors.currentPassword && <p className="field-error">{errors.currentPassword}</p>}
           </div>
 
           <div>
-            <label htmlFor="cp-new" className="block text-sm font-semibold text-neutral-700 mb-1.5">New Password</label>
+            <label htmlFor="cp-new" className="block text-sm font-medium text-slate-700 mb-1.5">New Password</label>
             <div className="relative">
               <input
                 id="cp-new"
@@ -96,26 +95,28 @@ const ChangePasswordPage = () => {
                 autoComplete="new-password"
                 value={form.newPassword}
                 onChange={handleChange}
-                placeholder="8-16 chars, 1 uppercase, 1 special char"
-                className="pr-12"
+                placeholder="8–16 chars, 1 uppercase, 1 special char"
+                className="pr-11"
               />
               <button
                 type="button"
                 aria-label={showNew ? 'Hide new password' : 'Show new password'}
                 onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-900 text-xs font-medium"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none rounded"
               >
-                {showNew ? 'Hide' : 'Show'}
+                {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {errors.newPassword && <p className="field-error">{errors.newPassword}</p>}
           </div>
 
-          <button id="cp-submit" type="submit" disabled={loading} className="btn-primary w-full mt-2">
-            {loading ? (
-              <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Updating...</>
-            ) : 'Update Password'}
-          </button>
+          <div className="pt-1">
+            <button id="cp-submit" type="submit" disabled={loading} className="btn-primary w-full">
+              {loading ? (
+                <><div className="spinner spinner-sm spinner-white" />Updating...</>
+              ) : 'Update Password'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

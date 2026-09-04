@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { PlusCircle, Trash2, X } from 'lucide-react';
 import { adminAPI } from '../../api/endpoints';
 import DataTable from '../../components/DataTable';
 import StarRating from '../../components/StarRating';
 import ConfirmationModal from '../../components/ConfirmationModal';
 
 const filters = [
-  { key: 'name', label: 'Name', placeholder: 'Filter by name...' },
-  { key: 'email', label: 'Email', placeholder: 'Filter by email...' },
+  { key: 'name',    label: 'Name',    placeholder: 'Filter by name...'    },
+  { key: 'email',   label: 'Email',   placeholder: 'Filter by email...'   },
   { key: 'address', label: 'Address', placeholder: 'Filter by address...' },
 ];
 
@@ -65,16 +66,17 @@ const AdminStoresPage = () => {
 
   const columns = useMemo(
     () => [
-      { key: 'name', label: 'Name', sortable: true },
-      { key: 'email', label: 'Email', sortable: true },
-      { key: 'address', label: 'Address' },
+      { key: 'name',  label: 'Store Name', sortable: true },
+      { key: 'email', label: 'Email', sortable: true, hideOnMobile: true },
+      { key: 'address', label: 'Address', hideOnMobile: true },
       {
         key: 'owner',
-        label: 'Store Owner',
+        label: 'Owner',
+        hideOnMobile: true,
         render: (v) => v ? (
           <div>
-            <div className="font-medium text-neutral-900">{v.name}</div>
-            <div className="text-xs text-neutral-500">{v.email}</div>
+            <div className="font-medium text-slate-800 text-sm">{v.name}</div>
+            <div className="text-xs text-slate-400">{v.email}</div>
           </div>
         ) : '—',
       },
@@ -82,12 +84,18 @@ const AdminStoresPage = () => {
         key: 'averageRating',
         label: 'Avg. Rating',
         sortable: true,
-        render: (v) => v ? <StarRating value={v} size="sm" /> : <span className="text-neutral-400 text-xs">No ratings</span>,
+        render: (v) => v
+          ? <StarRating value={v} size="sm" />
+          : <span className="text-slate-400 text-xs font-medium">No ratings</span>,
       },
       {
         key: 'totalRatings',
         label: 'Ratings',
-        render: (v) => <span className="text-neutral-500 text-sm">{v ?? 0}</span>,
+        render: (v) => (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium tabular-nums">
+            {v ?? 0}
+          </span>
+        ),
       },
       {
         key: 'id',
@@ -96,8 +104,10 @@ const AdminStoresPage = () => {
           <button
             type="button"
             onClick={() => setDeleteTarget(row)}
-            className="text-red-600 hover:text-red-800 hover:underline text-sm font-medium transition-colors"
+            className="btn-ghost-danger"
+            aria-label={`Delete store ${row.name}`}
           >
+            <Trash2 size={13} />
             Delete
           </button>
         ),
@@ -107,37 +117,35 @@ const AdminStoresPage = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-      <div className="flex items-center justify-between mb-8 border-b border-neutral-200 pb-6">
+    <div className="page-container">
+      <div className="page-header">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-900">Stores</h1>
-          <p className="text-neutral-500 text-sm mt-1">{stores.length} total stores</p>
+          <h1 className="text-3xl font-bold text-slate-900">Stores</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            {loading ? 'Loading...' : `${stores.length} total store${stores.length !== 1 ? 's' : ''}`}
+          </p>
         </div>
-        <Link to="/admin/stores/new" className="btn-primary">
-          🏗️ Add Store
+        <Link to="/admin/stores/new" className="btn-primary shrink-0">
+          <PlusCircle size={15} />
+          Add Store
         </Link>
       </div>
 
       {alert && (
-        <div
-          className={`mb-6 p-4 rounded-lg text-sm border flex items-center justify-between font-medium ${
-            alert.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : 'bg-red-50 border-red-200 text-red-700'
-          }`}
-        >
+        <div className={`mb-6 ${alert.type === 'success' ? 'alert-success' : 'alert-error'}`}>
           <span>{alert.text}</span>
           <button
             type="button"
             onClick={() => setAlert(null)}
-            className="text-neutral-400 hover:text-neutral-900 text-xs ml-4"
+            className="flex-shrink-0 text-current opacity-50 hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-current focus-visible:outline-none rounded"
+            aria-label="Dismiss"
           >
-            ✕
+            <X size={15} />
           </button>
         </div>
       )}
 
-      <div className="bg-white rounded-lg border border-neutral-200 shadow-sm p-1 sm:p-4">
+      <div className="section-panel">
         <DataTable
           columns={columns}
           data={stores}
@@ -148,7 +156,7 @@ const AdminStoresPage = () => {
           sortOrder={sortOrder}
           onSort={handleSort}
           loading={loading}
-          emptyMessage="No stores found."
+          emptyMessage="No stores found matching your filters."
         />
       </div>
 
